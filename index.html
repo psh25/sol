@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="太阳视运动。选择任意经纬度，离线计算太阳方位与高度，在半球和平面天空图中探索全年轨迹，默认地点为北京。">
+  <title>太阳视运动</title>
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="brand"><h1>太阳视运动</h1></div>
+      <div class="header-actions"><label class="checkbox-label follow-label"><input id="follow-now" type="checkbox" checked>跟随当前时间</label><button id="now" type="button">回到当前</button><button id="theme" type="button" aria-label="切换到深色模式">深色</button></div>
+    </header>
+    <section class="workspace" aria-label="太阳轨迹与位置">
+      <section class="earth-panel" aria-label="地球辅助示意">
+        <div class="earth-toolbar"><span class="eyebrow">地球 · 辅助示意</span></div>
+        <div class="earth-canvas-wrap"><canvas id="earth" aria-label="地球模型，地轴默认倾斜约 23.4 度，N 为北极，S 为南极。时间轴控制绕轴自转，日期轴保持地轴方向。方点小半球对应当地天空图；昼面较亮、夜面较暗。可用方向键自由旋转视角。" tabindex="0"></canvas><div class="earth-caption"><span>拖动旋转</span><button id="reset-earth" type="button">复位</button></div></div>
+        <div class="earth-meta"><div class="earth-legend"><span><i class="legend-site" aria-hidden="true"></i> 当地天空</span><span>⊙ 直射点</span><span><i class="legend-line" aria-hidden="true"></i> 当日轨迹</span></div><p id="subsolar-coordinates">直射点：—</p></div>
+      </section>
+      <section class="sky-panel">
+        <div class="sky-toolbar"><span class="eyebrow sky-identity"><i class="legend-site" aria-hidden="true"></i> 当地天空</span><div class="view-switch" role="group" aria-label="天空视图"><button id="view-dome" type="button" aria-pressed="true">半球</button><button id="view-flat" type="button" aria-pressed="false">平面</button></div></div>
+        <div class="canvas-wrap"><canvas id="sky" aria-label="北京当天的太阳运动轨迹" tabindex="0"></canvas><div class="canvas-caption"><span id="view-hint">拖动旋转 · 方向键微调</span><button id="reset-view" type="button">复位视角</button></div></div>
+        <div class="sky-bottom"><span><i class="legend-line" aria-hidden="true"></i>当天轨迹 <i class="legend-dot" aria-hidden="true"></i>当前太阳</span><label class="checkbox-label"><input id="underground" type="checkbox">显示地下轨迹</label></div>
+      </section>
+      <aside class="readout">
+        <div class="location"><h2 id="location-name">北京</h2><p id="location-coordinates">39.9042° N / 116.4074° E</p><p>北京时间 · UTC+8</p><form id="location-form" aria-label="所在地经纬度" novalidate><div class="coordinate-field"><label for="latitude">纬度 °</label><input id="latitude" type="number" min="-90" max="90" step="any" value="39.9042" aria-label="纬度" required></div><div class="coordinate-field"><label for="longitude">经度 °</label><input id="longitude" type="number" min="-180" max="180" step="any" value="116.4074" aria-label="经度" required></div><p class="coordinate-hint">北纬、东经为正；南纬、西经为负</p><div class="location-actions"><button type="submit">应用</button><button id="reset-location" type="button">恢复北京</button></div><p id="location-error" class="location-error" role="status" hidden></p></form></div>
+        <div class="position-readout"><span class="label">太阳高度角</span><div class="large-value"><span id="altitude">—</span><span class="unit">°</span></div><div class="azimuth-row"><span class="label">方位角</span><span><strong id="azimuth">—</strong>° <span id="direction"></span></span></div><p class="sun-state" id="sun-state">计算中</p></div>
+        <dl class="events"><div><dt>日出</dt><dd id="sunrise">—</dd></div><div><dt>日落</dt><dd id="sunset">—</dd></div><div><dt>太阳过中天</dt><dd id="noon">—</dd></div><div><dt>昼长</dt><dd id="daylight">—</dd></div></dl>
+        <p class="current-stamp" id="current-stamp">—</p>
+      </aside>
+    </section>
+    <section class="controls" aria-label="日期与时间控制">
+      <div class="control-row date-row"><div class="control-heading"><label for="date">日期</label><span id="day-index" class="control-note"></span></div><div class="input-group"><button id="prev-day" type="button" aria-label="前一天">−</button><input id="date" type="date" min="1900-01-01" max="2100-12-31" aria-label="日期"><button id="next-day" type="button" aria-label="后一天">＋</button><label class="year-label" for="year">年份</label><input id="year" type="number" min="1900" max="2100" step="1" aria-label="年份"></div><div class="slider-block"><div id="date-markers" class="axis-markers date-markers" role="group" aria-label="全年昼长关键日期"></div><input id="date-slider" type="range" min="0" max="364" step="1" aria-label="一年中的日期"><div class="ticks" aria-hidden="true"><span>1 月</span><span>4 月</span><span>7 月</span><span>10 月</span><span>12 月</span></div></div></div>
+      <div class="control-row time-row"><div class="control-heading"><label for="time">时间</label><span class="control-note">北京时间</span></div><div class="input-group"><input id="time" type="time" step="1" aria-label="北京时间"><button id="play" class="play-button" type="button" aria-pressed="false"><span id="play-symbol" aria-hidden="true">▷</span><span id="play-label">播放</span></button><select id="speed" aria-label="播放速度"><option value="600">10 分钟 / 秒</option><option value="1800" selected>30 分钟 / 秒</option><option value="3600">1 小时 / 秒</option></select></div><div class="slider-block"><div id="time-markers" class="axis-markers time-markers" role="group" aria-label="当天日出日落时刻"></div><input id="time-slider" type="range" min="0" max="86399" step="1" aria-label="一天中的时间"><div class="ticks" aria-hidden="true"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div></div>
+      <p id="input-error" class="input-error" role="status" hidden></p>
+    </section>
+    <footer class="footer"><span>离线计算 · 1900—2100</span><details><summary>计算约定</summary><div class="method-note"><p>轨迹与角度表示太阳中心的视位置，不含大气折射；日出日落按太阳上缘和标准折射计算，因此不等同于轨迹穿过 0° 的时刻。忽略山体、建筑遮挡，观测海拔取 0 米。</p><p>全年标注按所选经纬度在北京时间自然日内的日照时长计算。“昼夜近等长”选实际跨过 12 小时的最近日期；没有交点时不标注，极值相同时取首日。日出日落读数显示当天首次事件，时间轴标注全部事件；支持跨午夜与极昼极夜。点击标注可跳转。</p><p>地球是理想球体辅助示意，默认地轴倾斜一个黄赤交角（约 23.4°），N、S 分别表示北极、南极。时间轴带动地球绕地轴自转，日期轴更新太阳方向和轨迹，地轴方向保持不变。拖动地球可自由旋转观察角度，不再锁定黄道面水平；复位恢复默认视角。方点附着的放大小半球表示当地地平面与天顶，对应当地天空图，比例仅为示意。以浅淡明暗区分昼夜两面：昼面较亮、夜面较暗。直射点以太阳地心赤纬与恒星时近似求得；当日轨迹覆盖北京时间 00:00 至次日 00:00，每 10 分钟采样。虚线表示背面，点划线表示昼夜分界；照射箭头为太阳方向在屏幕上的投影。</p><p>启动默认跟随当前北京时间，每秒更新。手动调整日期、时间、点击轴上标注或开始播放会关闭跟随；勾选“跟随当前时间”或点击“回到当前”即可恢复。返回前台时立即校准当前时间。</p><p>方位角从正北开始顺时针增加。平面图北上东右，中心为天顶，粗圆为地平线；地下轨迹位于地平线圆外。半球中的点划线为角度网格，虚线为地下轨迹。</p><p>默认地点为北京，可输入任意有效经纬度；北纬、东经为正，南纬、西经为负，海拔取 0 米。不同地点的日期、时间仍统一使用北京时间 UTC+8，不自动切换所在地时区，不还原历史时区及夏令时。太阳角度显示至 0.1°，日出日落显示至分钟。计算基于 Astronomy Engine 2.1.19（MIT）。</p></div></details></footer>
+  </main>
+  <script src="vendor/astronomy.browser.min.js"></script>
+  <script src="src/time.js"></script>
+  <script src="src/solar.js"></script>
+  <script src="src/projection.js"></script>
+  <script src="src/view.js"></script>
+  <script src="src/earth.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>
+
